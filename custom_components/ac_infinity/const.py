@@ -8,4 +8,9 @@ UPDATE_SECONDS = 15
 
 BLEAK_EXCEPTIONS = (AttributeError, BleakError, TimeoutError)
 
-DEVICE_MODEL = {1: "Controller 67", 7: "Controller 69", 11: "Controller 69 Pro"}
+DEVICE_MODEL = {
+    1: "Controller 67",
+    6: "AIRTAP T6",
+    7: "Controller 69",
+    11: "Controller 69 Pro",
+}

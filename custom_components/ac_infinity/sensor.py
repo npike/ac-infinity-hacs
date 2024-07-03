@@ -32,10 +32,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up the light platform for LEDBLE."""
     data: ACInfinityData = hass.data[DOMAIN][entry.entry_id]
-    entities = [
-        TemperatureSensor(data.coordinator, data.device, entry.title),
-        HumiditySensor(data.coordinator, data.device, entry.title),
-    ]
+    entities = []
+    if data.device.state.type in [1, 6, 7, 11]:
+        entities.append(TemperatureSensor(data.coordinator, data.device, entry.title))
+
+    if data.device.state.type in [1, 7, 11]:
+        entities.append(HumiditySensor(data.coordinator, data.device, entry.title))
+
     if data.device.state.version >= 3 and data.device.state.type in [7, 9, 11, 12]:
         entities.append(VpdSensor(data.coordinator, data.device, entry.title))
     async_add_entities(entities)
