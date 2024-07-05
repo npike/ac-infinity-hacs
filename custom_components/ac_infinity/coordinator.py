@@ -68,7 +68,7 @@ class ACInfinityDataUpdateCoordinator(ActiveBluetoothDataUpdateCoordinator[None]
         """Poll the device."""
         # TODO need to fix cooridnate in ac-infinity-ble lib so that it doesn't try reading
         # self._state.level_on = data[18]?
-        # await self.controller.update()
+        await self.controller.update()
 
     @callback
     def _async_handle_unavailable(

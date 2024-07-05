@@ -18,6 +18,7 @@ from homeassistant.const import PERCENTAGE, UnitOfPressure, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DEVICE_MODEL, DOMAIN
@@ -41,6 +42,15 @@ async def async_setup_entry(
 
     if data.device.state.version >= 3 and data.device.state.type in [7, 9, 11, 12]:
         entities.append(VpdSensor(data.coordinator, data.device, entry.title))
+
+    if data.device.state.type in [6]:
+        entities.append(
+            TemperatureTriggerLowSensor(data.coordinator, data.device, entry.title)
+        )
+        entities.append(
+            TemperatureTriggerHighSensor(data.coordinator, data.device, entry.title)
+        )
+
     async_add_entities(entities)
 
 
@@ -105,6 +115,50 @@ class TemperatureSensor(ACInfinitySensor):
     def _async_update_attrs(self) -> None:
         """Handle updating _attr values."""
         self._attr_native_value = self._device.temperature
+
+
+class TemperatureTriggerLowSensor(ACInfinitySensor):
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} Temperature Trigger Low"
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self._device.address}_tmp_trigger_low"
+
+    @callback
+    def _async_update_attrs(self) -> None:
+        """Handle updating _attr values."""
+        self._attr_native_value = self._device.state.tmp_trigger_low
+
+
+class TemperatureTriggerHighSensor(ACInfinitySensor):
+    _attr_native_unit_of_measurement = (
+        UnitOfTemperature.FAHRENHEIT
+    )  # FOr some reason this one is in F instead of C?
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} Temperature Trigger High"
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self._device.address}_tmp_trigger_high"
+
+    @callback
+    def _async_update_attrs(self) -> None:
+        """Handle updating _attr values."""
+        self._attr_native_value = self._device.state.tmp_trigger_high
 
 
 class HumiditySensor(ACInfinitySensor):
