@@ -50,6 +50,7 @@ async def async_setup_entry(
         entities.append(
             TemperatureTriggerHighSensor(data.coordinator, data.device, entry.title)
         )
+        entities.append(WorkTypeSensor(data.coordinator, data.device, entry.title))
 
     async_add_entities(entities)
 
@@ -180,6 +181,39 @@ class HumiditySensor(ACInfinitySensor):
     def _async_update_attrs(self) -> None:
         """Handle updating _attr values."""
         self._attr_native_value = self._device.humidity
+
+
+class WorkTypeSensor(ACInfinitySensor):
+    _attr_native_unit_of_measurement = None
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def name(self) -> str:
+        return f"{self._name} Work Type"
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self._device.address}_work_type"
+
+    @callback
+    def _async_update_attrs(self) -> None:
+        """Handle updating _attr values."""
+        self._attr_native_value = self._translate_state(self._device.state.work_type)
+
+    def _translate_state(self, raw_state):
+        if raw_state == 6:
+            return "Cycle"
+        if raw_state == 4:
+            return "Timer"
+        if raw_state == 3:
+            return "Auto"
+        if raw_state == 2:
+            return "On"
+        if raw_state == 1:
+            return "Off"
+
+        return "Unknown"
 
 
 class VpdSensor(ACInfinitySensor):
