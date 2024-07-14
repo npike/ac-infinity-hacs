@@ -1,0 +1,17 @@
+set_device_work_type:
+  description: "Set the work type of the device"
+  fields:
+    entity_id:
+      description: "The entity ID of the device"
+      example: "sensor.your_device"
+    type:
+      description: "The work type to set (AUTO, TIMER, ON, OFF, CYCLE)"
+      example: "AUTO"
+      selector:
+      select:
+        options:
+          - AUTO
+          - ON
+          - OFF
+          - CYCLE
+          - TIMER

@@ -20,7 +20,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
 from .const import DEVICE_MODEL, DOMAIN
 from .coordinator import ACInfinityDataUpdateCoordinator
 from .models import ACInfinityData

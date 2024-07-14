@@ -1,6 +1,6 @@
 """The ac_infinity fan platform."""
 from __future__ import annotations
-
+import logging
 import math
 from typing import Any
 
@@ -16,17 +16,31 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import entity_platform
+
 from homeassistant.util.percentage import (
     int_states_in_range,
     ranged_value_to_percentage,
     percentage_to_ranged_value,
 )
 
+import voluptuous as vol
+from homeassistant.helpers import config_validation as cv
+
 from .const import DEVICE_MODEL, DOMAIN
 from .coordinator import ACInfinityDataUpdateCoordinator
 from .models import ACInfinityData
 
 SPEED_RANGE = (1, 10)
+
+_LOGGER = logging.getLogger(__name__)
+
+SERVICE_SET_WORK_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Required("type"): vol.In(["AUTO", "ON", "OFF", "CYCLE", "TIMER"]),
+    }
+)
 
 
 async def async_setup_entry(
@@ -37,6 +51,10 @@ async def async_setup_entry(
     """Set up the light platform for LEDBLE."""
     data: ACInfinityData = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([ACInfinityFan(data.coordinator, data.device, entry.title)])
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        "set_device_work_type", SERVICE_SET_WORK_TYPE_SCHEMA, "set_device_work_type"
+    )
 
 
 class ACInfinityFan(
@@ -90,6 +108,26 @@ class ACInfinityFan(
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the fan."""
         await self._device.turn_off()
+
+    async def set_device_work_type(self, type):
+        """Handle service request to change work type."""
+        work_type = type
+        _LOGGER.debug("Service request to set work type to %s", work_type)
+
+        # Translate the mode to the raw value
+        if work_type == "CYCLE":
+            raw_mode = 6
+        elif work_type == "TIMER":
+            raw_mode = 4
+        elif work_type == "AUTO":
+            raw_mode = 3
+        elif work_type == "ON":
+            raw_mode = 2
+        elif work_type == "OFF":
+            raw_mode = 1
+
+        _LOGGER.debug("Work type set to %s", raw_mode)
+        await self._device.set_type(raw_mode)
 
     @callback
     def _async_update_attrs(self) -> None:
