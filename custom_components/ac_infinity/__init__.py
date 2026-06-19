@@ -19,7 +19,7 @@ from .const import DOMAIN
 from .coordinator import ACInfinityDataUpdateCoordinator
 from .models import ACInfinityData
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.FAN]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.FAN, Platform.SELECT]
 
 _LOGGER = logging.getLogger(__name__)
 
