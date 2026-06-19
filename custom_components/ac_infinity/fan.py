@@ -35,9 +35,8 @@ SPEED_RANGE = (1, 10)
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_SET_WORK_TYPE_SCHEMA = vol.Schema(
+SERVICE_SET_WORK_TYPE_SCHEMA = cv.make_entity_service_schema(
     {
-        vol.Required("entity_id"): cv.entity_id,
         vol.Required("type"): vol.In(["AUTO", "ON", "OFF", "CYCLE", "TIMER"]),
     }
 )
@@ -63,7 +62,11 @@ class ACInfinityFan(
     """Representation of AC Infinity sensor."""
 
     _attr_speed_count = int_states_in_range(SPEED_RANGE)
-    _attr_supported_features = FanEntityFeature.SET_SPEED
+    _attr_supported_features = (
+        FanEntityFeature.SET_SPEED
+        | FanEntityFeature.TURN_ON
+        | FanEntityFeature.TURN_OFF
+    )
 
     def __init__(
         self,
@@ -80,7 +83,7 @@ class ACInfinityFan(
             name=device.name,
             model=DEVICE_MODEL[device.state.type],
             manufacturer="AC Infinity",
-            sw_version=device.state.version,
+            sw_version=str(device.state.version) if device.state.version is not None else None,
             connections={(dr.CONNECTION_BLUETOOTH, device.address)},
         )
         self._async_update_attrs()
